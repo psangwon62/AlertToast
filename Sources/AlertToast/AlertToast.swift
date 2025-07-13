@@ -130,6 +130,12 @@ public struct AlertToast: View{
         case regular
     }
     
+    public enum ToastWidth: Equatable {
+        case `default`
+        case expanded
+        case custom(CGFloat)
+    }
+    
     /// Customize Alert Appearance
     public enum AlertStyle: Equatable{
         
@@ -342,7 +348,7 @@ public struct AlertToast: View{
     
     ///HUD View
     public var hud: some View{
-        Group{
+        let hudView =
             HStack(spacing: 16){
                 switch type{
                 case .complete(let color):
@@ -388,6 +394,7 @@ public struct AlertToast: View{
             .padding(.horizontal, 24)
             .padding(.vertical, 8)
             .frame(minHeight: 50)
+            .applyHudFrame(width: width)
             .alertBackground(style?.backgroundColor ?? nil, style?.backgroundMaterial ?? nil)
             .clipShape(Capsule())
             .overlay(
@@ -396,6 +403,14 @@ public struct AlertToast: View{
             )
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 6)
             .compositingGroup()
+
+        return Group {
+            if width == .expanded {
+                hudView
+                    .padding(.horizontal, 16)
+            } else {
+                hudView
+            }
         }
         .padding(.top)
     }
@@ -846,6 +861,22 @@ public extension View{
             self.onReceive(Just(value)) { (value) in
                 onChange(value)
             }
+        }
+    }
+}
+
+@available(iOS 14, macOS 11, *)
+fileprivate extension View {
+    
+    @ViewBuilder
+    func applyHudFrame(width: AlertToast.ToastWidth) -> some View {
+        switch width {
+        case .default:
+            self
+        case .expanded:
+            self.frame(maxWidth: .infinity)
+        case .custom(let value):
+            self.frame(width: value)
         }
     }
 }
