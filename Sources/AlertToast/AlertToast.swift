@@ -153,14 +153,12 @@ public struct AlertToast: View{
                    activityIndicatorColor: Color? = nil,
                    backgroundMaterial: BackgroundMaterial? = nil,
                    borderColor: Color? = nil,
-                   borderWidth: CGFloat? = nil,
-                   width: CGFloat? = nil,
-                   height: CGFloat? = nil)
+                   borderWidth: CGFloat? = nil)
         
         ///Get background color
         var backgroundColor: Color? {
             switch self{
-            case .style(backgroundColor: let color, _, _, _, _, _, _, _, _, _, _):
+            case .style(backgroundColor: let color, _, _, _, _, _, _, _, _):
                 return color
             }
         }
@@ -168,7 +166,7 @@ public struct AlertToast: View{
         /// Get title color
         var titleColor: Color? {
             switch self{
-            case .style(_,let color, _,_,_,_,_, _, _, _, _):
+            case .style(_,let color, _,_,_,_,_, _, _):
                 return color
             }
         }
@@ -176,7 +174,7 @@ public struct AlertToast: View{
         /// Get subTitle color
         var subtitleColor: Color? {
             switch self{
-            case .style(_,_, let color, _,_,_,_, _, _, _, _):
+            case .style(_,_, let color, _,_,_,_, _, _):
                 return color
             }
         }
@@ -184,7 +182,7 @@ public struct AlertToast: View{
         /// Get title font
         var titleFont: Font? {
             switch self {
-            case .style(_, _, _, titleFont: let font, _,_,_, _, _, _, _):
+            case .style(_, _, _, titleFont: let font, _,_,_, _, _):
                 return font
             }
         }
@@ -192,58 +190,38 @@ public struct AlertToast: View{
         /// Get subTitle font
         var subTitleFont: Font? {
             switch self {
-            case .style(_, _, _, _, subTitleFont: let font,_,_, _, _, _, _):
+            case .style(_, _, _, _, subTitleFont: let font,_,_, _, _):
                 return font
             }
         }
 
         var activityIndicatorColor: Color? {
             switch self {
-            case .style(_, _, _, _, _, let color, _, _, _, _, _):
+            case .style(_, _, _, _, _, let color, _, _, _):
                 return color
             }
         }
         
         var backgroundMaterial: BackgroundMaterial? {
             switch self {
-            case .style(_, _, _, _, _, _, let material, _, _, _, _):
+            case .style(_, _, _, _, _, _, let material, _, _):
                 return material
             }
         }
         
         var borderColor: Color? {
             switch self {
-            case .style(_, _, _, _, _, _, _, let color, _, _, _):
+            case .style(_, _, _, _, _, _, _, let color, _):
                 return color
             }
         }
         
         var borderWidth: CGFloat? {
             switch self {
-            case .style(_, _, _, _, _, _, _, _, let width, _, _):
+            case .style(_, _, _, _, _, _, _, _, let width):
                 return width
             }
         }
-        
-        var width: CGFloat? {
-            switch self {
-            case .style(_, _, _, _, _, _, _, _, _, let width, _):
-                return width
-            }
-        }
-        
-        var height: CGFloat? {
-            switch self {
-            case .style(_, _, _, _, _, _, _, _, _, _, let height):
-                return height
-            }
-        }
-    }
-    
-    public enum ToastWidth {
-        case `default`
-        case expanded
-        case custom(CGFloat)
     }
     
     ///The display mode
@@ -265,7 +243,6 @@ public struct AlertToast: View{
     ///Customize your alert appearance
     public var style: AlertStyle? = nil
     
-    ///Customize the width of the alert
     public var width: ToastWidth = .default
     
     ///Full init
@@ -334,7 +311,7 @@ public struct AlertToast: View{
             .multilineTextAlignment(.leading)
             .textColor(style?.titleColor ?? nil)
             .padding()
-            .frame(maxWidth: 400)
+            .frame(maxWidth: 400, alignment: .leading)
             .alertBackground(style?.backgroundColor ?? nil, style?.backgroundMaterial ?? nil)
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
@@ -342,7 +319,6 @@ public struct AlertToast: View{
             )
             .cornerRadius(10)
             .padding([.horizontal, .bottom])
-            .frame(maxWidth: 400)
         }
     }
     
@@ -480,43 +456,13 @@ public struct AlertToast: View{
     
     ///Body init determine by `displayMode`
     public var body: some View{
-        GeometryReader { geo in
-            ZStack(alignment: alignment) {
-                switch displayMode{
-                case .alert:
-                    alert
-                        .frame(width: frame(for: geo.size.width))
-                case .hud:
-                    hud
-                        .frame(width: frame(for: geo.size.width))
-                case .banner:
-                    banner
-                        .frame(width: frame(for: geo.size.width))
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-    }
-
-    private var alignment: Alignment {
-        switch displayMode {
+        switch displayMode{
         case .alert:
-            return .center
+            alert
         case .hud:
-            return .top
+            hud
         case .banner:
-            return .bottom
-        }
-    }
-    
-    private func frame(for width: CGFloat) -> CGFloat? {
-        switch self.width {
-        case .default:
-            return nil
-        case .expanded:
-            return width - 32
-        case .custom(let customWidth):
-            return customWidth
+            banner
         }
     }
 }
@@ -717,8 +663,7 @@ public struct AlertToastModifier: ViewModifier{
     }
 }
 
-
-
+///Fileprivate View Modifier for dynamic frame when alert type is `.regular` / `.loading`
 @available(iOS 14, macOS 11, *)
 fileprivate struct WithFrameModifier: ViewModifier{
     
