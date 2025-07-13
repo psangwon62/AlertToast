@@ -133,17 +133,24 @@ public struct AlertToast: View{
     /// Customize Alert Appearance
     public enum AlertStyle: Equatable{
         
+        #if os(macOS)
+        public typealias BackgroundMaterial = NSVisualEffectView.Material
+        #else
+        public typealias BackgroundMaterial = UIBlurEffect.Style
+        #endif
+
         case style(backgroundColor: Color? = nil,
                    titleColor: Color? = nil,
                    subTitleColor: Color? = nil,
                    titleFont: Font? = nil,
                    subTitleFont: Font? = nil,
-                   activityIndicatorColor: Color? = nil)
+                   activityIndicatorColor: Color? = nil,
+                   backgroundMaterial: BackgroundMaterial? = nil)
         
         ///Get background color
         var backgroundColor: Color? {
             switch self{
-            case .style(backgroundColor: let color, _, _, _, _, _):
+            case .style(backgroundColor: let color, _, _, _, _, _, _):
                 return color
             }
         }
@@ -151,7 +158,7 @@ public struct AlertToast: View{
         /// Get title color
         var titleColor: Color? {
             switch self{
-            case .style(_,let color, _,_,_,_):
+            case .style(_,let color, _,_,_,_,_):
                 return color
             }
         }
@@ -159,7 +166,7 @@ public struct AlertToast: View{
         /// Get subTitle color
         var subtitleColor: Color? {
             switch self{
-            case .style(_,_, let color, _,_,_):
+            case .style(_,_, let color, _,_,_,_):
                 return color
             }
         }
@@ -167,7 +174,7 @@ public struct AlertToast: View{
         /// Get title font
         var titleFont: Font? {
             switch self {
-            case .style(_, _, _, titleFont: let font, _,_):
+            case .style(_, _, _, titleFont: let font, _,_,_):
                 return font
             }
         }
@@ -175,15 +182,22 @@ public struct AlertToast: View{
         /// Get subTitle font
         var subTitleFont: Font? {
             switch self {
-            case .style(_, _, _, _, subTitleFont: let font,_):
+            case .style(_, _, _, _, subTitleFont: let font,_,_):
                 return font
             }
         }
 
         var activityIndicatorColor: Color? {
             switch self {
-            case .style(_, _, _, _, _, let color):
+            case .style(_, _, _, _, _, let color, _):
                 return color
+            }
+        }
+        
+        var backgroundMaterial: BackgroundMaterial? {
+            switch self {
+            case .style(_, _, _, _, _, _, let material):
+                return material
             }
         }
     }
@@ -272,7 +286,7 @@ public struct AlertToast: View{
             .textColor(style?.titleColor ?? nil)
             .padding()
             .frame(maxWidth: 400, alignment: .leading)
-            .alertBackground(style?.backgroundColor ?? nil)
+            .alertBackground(style?.backgroundColor ?? nil, style?.backgroundMaterial ?? nil)
             .cornerRadius(10)
             .padding([.horizontal, .bottom])
         }
@@ -326,7 +340,7 @@ public struct AlertToast: View{
             .padding(.horizontal, 24)
             .padding(.vertical, 8)
             .frame(minHeight: 50)
-            .alertBackground(style?.backgroundColor ?? nil)
+            .alertBackground(style?.backgroundColor ?? nil, style?.backgroundMaterial ?? nil)
             .clipShape(Capsule())
             .overlay(Capsule().stroke(Color.gray.opacity(0.2), lineWidth: 1))
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 6)
@@ -390,7 +404,7 @@ public struct AlertToast: View{
         }
         .padding()
         .withFrame(type != .regular && type != .loading)
-        .alertBackground(style?.backgroundColor ?? nil)
+        .alertBackground(style?.backgroundColor ?? nil, style?.backgroundMaterial ?? nil)
         .cornerRadius(10)
     }
     
@@ -628,6 +642,12 @@ fileprivate struct WithFrameModifier: ViewModifier{
 fileprivate struct BackgroundModifier: ViewModifier{
     
     var color: Color?
+    #if os(macOS)
+    typealias BackgroundMaterial = NSVisualEffectView.Material
+    #else
+    typealias BackgroundMaterial = UIBlurEffect.Style
+    #endif
+    var material: BackgroundMaterial?
     
     @ViewBuilder
     func body(content: Content) -> some View {
@@ -636,7 +656,7 @@ fileprivate struct BackgroundModifier: ViewModifier{
                 .background(color)
         }else{
             content
-                .background(BlurView())
+                .background(BlurView(material: material))
         }
     }
 }
@@ -722,8 +742,8 @@ public extension View{
     /// Choose the alert background
     /// - Parameter color: Some Color, if `nil` return `VisualEffectBlur`
     /// - Returns: some View
-    fileprivate func alertBackground(_ color: Color? = nil) -> some View{
-        modifier(BackgroundModifier(color: color))
+    fileprivate func alertBackground(_ color: Color? = nil, _ material: BackgroundModifier.BackgroundMaterial? = nil) -> some View{
+        modifier(BackgroundModifier(color: color, material: material))
     }
     
     /// Choose the alert background
